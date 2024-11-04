@@ -30,9 +30,6 @@ class eazybase:
         self.requested = False
         self.current_gdata = []
 
-        # self.phone = "+34665154713"
-        # self.logindone = True
-
     def isLogged(self):
         return self.logindone
 
