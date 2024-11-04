@@ -1,23 +1,37 @@
 import requests
 import json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 class eazybase:
-    def __init__(self, phone: str, company_owner: str):
-        self.base_url = (
-            "https://pre.uground.com/eazybase_pre/apiRest/EAZYBASE/GetChatMessage"
-        )
-        self.gdata_url = "https://pre.uground.com/eazybase_pre/apiRest/EAZYBASE/RetrieveUsrProcessData"
-        self.login_url = (
-            "https://pre.uground.com/eazybase_pre/apiRest/EAZYBASE/requestUsrlink"
-        )
+    def __init__(self, phone: str):
+        self.base_url = os.getenv("CHAT_URL")
+        self.gdata_url = os.getenv("GDATA_URL")
+        self.login_url = os.getenv("LOGIN_URL")
+        self.getsources = os.getenv("SHOW_SOURCES")
         self.phone = phone
         self.email = ""
-        self.company_owner = company_owner
-        self.profile_name = "Guest"
+        self.company_owner = ""
+        self.company_lst = [
+            "Privado 0",
+            "Privado 1",
+            "ITH hotelero",
+            "UGROUND_CODE",
+            "RH corona - EazyHotel",
+            "INTERNAL_UGROUND",
+            "Felwy",
+            "Visit Valencia",
+        ]
+        self.profile_name = f"Guest - {self.phone}"
         self.logindone = False
         self.requested = False
         self.current_gdata = []
+
+        # self.phone = "+34665154713"
+        # self.logindone = True
 
     def isLogged(self):
         return self.logindone
@@ -27,6 +41,13 @@ class eazybase:
 
     def gather_data(self):
         return True
+
+    def get_company_lst(self):
+        return self.company_lst
+
+    def set_company_owner(self, selected_: int = -1) -> None:
+        self.company_owner = self.company_lst.index(selected_) + 1
+        self.company_owner = 4
 
     def do_login(self, phone_num, code):
         self.phone = phone_num
@@ -51,13 +72,13 @@ class eazybase:
     def _get_usr_gatherdata(self):
         json_ = {"mapData": {"phone": self.phone, "profile_name": self.profile_name}}
         self.current_gdata = self._submit_request(json_, self.gdata_url, "usageData")
-        print(self.current_gdata)
 
     def _submit_request(self, json_, url: str, return_str: str) -> dict:
         req = requests.post(url, data=json.dumps(json_))
         chat_return = req.json()
-        print(chat_return)
-        return json.loads(chat_return[return_str])
+        if isinstance(chat_return[return_str], str):
+            return json.loads(chat_return[return_str])
+        return chat_return[return_str]
 
     def GetResponse(self, prompt: str) -> str:
         json_ = {
@@ -66,13 +87,11 @@ class eazybase:
                 "phone": self.phone,
                 "body": prompt,
                 "profile_name": self.profile_name,
+                "fetch_sources": self.getsources,
             }
         }
 
         return_data = self._submit_request(json_, self.base_url, "chatreturn")
-        print(type(return_data))
-        print(return_data["response_body"])
-        print(return_data["kbase"])
         return (
             return_data["response_body"],
             return_data["kbase"],
