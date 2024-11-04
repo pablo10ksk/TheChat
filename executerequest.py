@@ -20,9 +20,9 @@ class eazybase:
             "Privado 1",
             "ITH hotelero",
             "UGROUND_CODE",
-            "RH corona - EazyHotel",
+            "EazyHotel",
             "INTERNAL_UGROUND",
-            "Felwy",
+            "Private 3",
             "Visit Valencia",
         ]
         self.profile_name = f"Guest - {self.phone}"
