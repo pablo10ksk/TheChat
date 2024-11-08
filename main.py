@@ -12,12 +12,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 if "messages" not in st.session_state:
     st.session_state.messages = []
-    # st.session_state["phone"] = str(uuid.uuid4())
-    st.session_state["company_owner"] = 0
-    st.session_state["phone"] = str(f"{uuid.uuid4()}")
-    st.session_state["eazybase"] = eazybase(st.session_state["phone"])
+    # st.session_state.phone = str(uuid.uuid4())
+    st.session_state.company_owner = 0
+    st.session_state.loaded_ = False
+    st.session_state.phone = ""
     st.set_page_config(layout="wide")
 
 
@@ -39,15 +40,15 @@ def repr_agg_data(array_data: dict) -> None:
 
 def submit_auth(country_selected: str, phone_num: str, code: str) -> bool:
     phone_num = f"{country_operations.get_country_code(country_selected)}{phone_num}"
-    st.session_state["phone"] = phone_num
-    st.session_state["eazybase"].do_login(phone_num, code)
+    st.session_state.phone = phone_num
+    st.session_state.eazybase.do_login(phone_num, code)
 
 
 def set_company_combo():
     selected_ = st.selectbox(
-        "Company Owner", st.session_state["eazybase"].get_company_lst(), index=0
+        "Knowlege base", st.session_state.eazybase.get_company_lst(), index=0
     )
-    st.session_state["eazybase"].set_company_owner(selected_)
+    st.session_state.eazybase.set_company_owner(selected_)
 
 
 def set_count_option():
@@ -60,10 +61,31 @@ def set_count_option():
     )
 
 
+def submit_email():
+    if len(st.session_state.phone) == 0:
+        st.error("Debe rellenar el campo")
+        return
+
+    st.session_state.eazybase = eazybase(st.session_state.phone)
+    st.session_state.loaded_ = True
+
+
+def set_user_email():
+    if st.session_state.loaded_:
+        st.write(f"Identification: {st.session_state.phone}")
+        st.success(f"Login correct!")
+
+    else:
+        st.session_state.phone = st.text_input("Identificador del usuario")
+        submitted1 = st.button(label="Submit", on_click=submit_email)
+
+
 def set_user_phone():
-    st.write(f"Current number: {st.session_state['phone']}")
-    if st.session_state["eazybase"].isLogged():
-        st.write(f"Login correct!")
+    st.write(f"Identification: {st.session_state.phone}")
+
+    if st.session_state.loaded_:
+        if st.session_state.eazybase.isLogged():
+            st.success(f"Login correct!")
     else:
         code_auth = ""
         col1, col2 = st.columns(2)
@@ -72,7 +94,7 @@ def set_user_phone():
         with col2:
             phone_num = st.text_input("Phone number")
 
-        if st.session_state["eazybase"].isrequested():
+        if st.session_state.eazybase.isrequested():
             code_auth = st.text_input("Code")
 
         submitted1 = st.button(
@@ -88,12 +110,16 @@ def set_user_phone():
 
 def _set_chat_space():
     if prompt := st.chat_input("............TheChat.........."):
+        if not st.session_state.loaded_:
+            st.error("Debe rellenar el nombre de usuario", icon="??")
+            return
+
         st.session_state.messages.append({"name": "user", "text": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
         with st.chat_message("assistant"):
             with st.spinner("Ya mismo te contesto..."):
-                response_text, response_data = st.session_state["eazybase"].GetResponse(
+                response_text, response_data = st.session_state.eazybase.GetResponse(
                     prompt,
                 )
                 st.session_state.messages.append(
@@ -109,22 +135,29 @@ def _set_chat_space():
 
 
 def _set_gdata_space():
-    if st.session_state["eazybase"].gather_data():
-        st.session_state["eazybase"]._get_usr_gatherdata()
-    for objproc in st.session_state["eazybase"].current_gdata:
-        st.write(st.session_state["eazybase"].get_text_description(objproc))
+    if st.session_state.eazybase.gather_data():
+        st.session_state.eazybase._get_usr_gatherdata()
+    for objproc in st.session_state.eazybase.current_gdata:
+        st.write(st.session_state.eazybase.get_text_description(objproc))
 
 
 def _set_sidebar():
     with st.sidebar:
-        set_company_combo()
-        set_user_phone()
+        identification_ = os.getenv("IDENTIFICATION")
+        if identification_ == "phone":
+            set_user_phone()
+        else:
+            set_user_email()
+
+        if st.session_state.loaded_:
+            set_company_combo()
 
 
 def _set_ui():
     _set_sidebar()
-
-    if st.session_state["eazybase"].isLogged():
+    if not st.session_state.loaded_:
+        return
+    if st.session_state.eazybase.isLogged():
         _set_chat_history()
         _set_chat_space()
     else:

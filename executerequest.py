@@ -15,20 +15,37 @@ class eazybase:
         self.phone = phone
         self.email = ""
         self.company_owner = ""
-        self.company_lst = [
-            "Privado 0",
-            "Privado 1",
-            "ITH hotelero",
-            "UGROUND_CODE",
-            "EazyHotel",
-            "INTERNAL_UGROUND",
-            "Private 3",
-            "Visit Valencia",
-        ]
+        self.company_map = {
+            "Privado 0": "1",
+            "Privado 1": "2",
+            "ITH hotelero": "3",
+            "UGROUND_CODE": "4",
+            "EazyHotel": "5",
+            "UGROUND Interno": "6",
+            "Private 3": "7",
+            "Visit Valencia": "8",
+            "UGROUND PAINT": "9",
+        }
+        # self.company_lst = [
+        #    "Privado 0",
+        #    "Privado 1",
+        #    "ITH hotelero",
+        #    "UGROUND_CODE",
+        #    "EazyHotel",
+        #    "INTERNAL_UGROUND",
+        #    "Private 3",
+        #    "Visit Valencia",
+        #    "UGROUND PAINT",
+        # ]
+        self.set_company_lst()
         self.profile_name = f"Guest - {self.phone}"
         self.logindone = False
         self.requested = False
         self.current_gdata = []
+
+    def set_company_lst(self):
+        base_lst = os.getenv("COMPANIES_")
+        self.company_lst = base_lst.split("@")
 
     def isLogged(self):
         return self.logindone
@@ -42,9 +59,11 @@ class eazybase:
     def get_company_lst(self):
         return self.company_lst
 
-    def set_company_owner(self, selected_: int = -1) -> None:
-        self.company_owner = self.company_lst.index(selected_) + 1
-        self.company_owner = 4
+    def set_company_owner(self, selected_: str = "") -> None:
+        if len(selected_) == 0:
+            self.company_owner = -1
+        else:
+            self.company_owner = self.company_map[selected_]
 
     def do_login(self, phone_num, code):
         self.phone = phone_num
