@@ -25,6 +25,7 @@ class eazybase:
             "Private 3": "7",
             "Visit Valencia": "8",
             "UGROUND PAINT": "9",
+            "Morph": "10",
         }
         # self.company_lst = [
         #    "Privado 0",
@@ -38,7 +39,7 @@ class eazybase:
         #    "UGROUND PAINT",
         # ]
         self.set_company_lst()
-        self.profile_name = f"Guest - {self.phone}"
+        self.profile_name = f"{self.phone}"
         self.logindone = False
         self.requested = False
         self.current_gdata = []
